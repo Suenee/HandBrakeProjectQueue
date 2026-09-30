@@ -1,3 +1,7 @@
 logs/
 config.local.json
 *.tmp
+bin/
+obj/
+src/**/bin/
+src/**/obj/
