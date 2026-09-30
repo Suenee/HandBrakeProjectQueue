@@ -3,6 +3,7 @@
   "deliveryFolder": "DELIVERY",
   "convertedSuffix": "-conv.mp4",
   "videoExtensions": [".mp4", ".mov", ".mkv", ".m4v", ".avi", ".webm"],
+  "handBrakePath": "",
   "language": "cs",
   "logging": "single"
 }
