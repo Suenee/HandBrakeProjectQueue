@@ -1,5 +1,8 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
+chcp 65001 >nul
+set "DOTNET_CLI_UI_LANGUAGE=en"
+set "DOTNET_CLI_TELEMETRY_OPTOUT=1"
 if /I "%~1"=="--hbpq-temp" goto :TEMP
 cls
 set "HBPQ_REPO=%~dp0"
