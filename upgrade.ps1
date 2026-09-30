@@ -22,7 +22,7 @@ function GitText([string[]]$ArgumentList){
 function Fail([string]$phase,[string]$m,[int]$code=1){Log "ERROR [$phase] $m";Log "STATUS: FAILED - phase=$phase";exit $code}
 try{
  Push-Location $RepositoryPath
- $env:GIT_CONFIG_COUNT='1';$env:GIT_CONFIG_KEY_0='safe.directory';$env:GIT_CONFIG_VALUE_0=$RepositoryPath
+ $env:GIT_CONFIG_COUNT='1';$env:GIT_CONFIG_KEY_0='safe.directory';$env:GIT_CONFIG_VALUE_0='*'
  Log "Repository:  $RepositoryPath";Log "Branch:      $branch";Log "Updater:     $updaterRevision"
  if(-not(Test-Path '.git')){Fail 'REPOSITORY' 'Bootstrap did not create a Git repository.' 10}
  $origin=GitText @('remote','get-url','origin')
