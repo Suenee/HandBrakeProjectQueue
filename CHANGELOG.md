@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.03 - 30.09.2026
+
+- Fix project search to filter the complete project directory list live while typing.
+- Include completed projects in live search results.
+- Make search case-insensitive and match any part of the project name.
+
 ## 0.02 - 30.09.2026
 
 - Hide the PowerShell console when launching the GUI.
