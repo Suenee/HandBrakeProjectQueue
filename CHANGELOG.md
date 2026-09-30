@@ -1,9 +1,21 @@
 # Changelog
 
+## 0.04 - 30.09.2026
+
+- Migrated the application UI from PowerShell to C# / .NET 10 WinForms.
+- Added immediate native GUI startup with project scanning performed asynchronously after the window is shown.
+- Added scan progress with current/total project count.
+- Added Cancel action to stop scanning while keeping the application open.
+- Close exits the complete application and cancels an active scan.
+- Kept the compact file table with checkbox, file name, and conversion status.
+- Kept live project search across pending and completed projects.
+- Added native settings dialog and HandBrake executable auto-detection.
+- Updated run.cmd to launch the compiled Windows executable without a console window.
+- Updated upgrade lifecycle to require, build, publish, and verify .NET 10 output.
+
 ## 0.03 - 30.09.2026
 
 - Fix network-share Git bootstrap by applying repository-local safe.directory context before the first Git command.
-
 - Fix project search to filter the complete project directory list live while typing.
 - Include completed projects in live search results.
 - Make search case-insensitive and match any part of the project name.
