@@ -1,0 +1,8 @@
+{
+  "editingRoot": "*:\\WORK\\Sueneé Universe\\EDITING",
+  "deliveryFolder": "DELIVERY",
+  "convertedSuffix": "-conv.mp4",
+  "videoExtensions": [".mp4", ".mov", ".mkv", ".m4v", ".avi", ".webm"],
+  "language": "cs",
+  "logging": "single"
+}
