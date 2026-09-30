@@ -19,6 +19,9 @@ where git.exe >nul 2>nul || (
   exit /b 3
 )
 pushd "%HBPQ_REPO%" || exit /b 4
+set "GIT_CONFIG_COUNT=1"
+set "GIT_CONFIG_KEY_0=safe.directory"
+set "GIT_CONFIG_VALUE_0=%HBPQ_REPO%"
 
 if not exist ".git" (
   echo [BOOTSTRAP] Preparing fresh checkout...
