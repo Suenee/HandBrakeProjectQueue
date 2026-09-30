@@ -23,7 +23,7 @@ function Fail([string]$phase,[string]$m,[int]$code=1){Log "ERROR [$phase] $m";Lo
 try{
  Push-Location $RepositoryPath
  $env:GIT_CONFIG_COUNT='1';$env:GIT_CONFIG_KEY_0='safe.directory';$env:GIT_CONFIG_VALUE_0='*'
- Log "Repository:  $RepositoryPath";Log "Branch:      $branch";Log "Updater:     $updaterRevision"
+ Write-Host '[SELF-UPDATE]' -ForegroundColor Cyan;Log "Repository:  $RepositoryPath";Log "Branch:      $branch";Log "Updater:     $updaterRevision"
  if(-not(Test-Path '.git')){Fail 'REPOSITORY' 'Bootstrap did not create a Git repository.' 10}
  $origin=GitText @('remote','get-url','origin')
  if(-not $origin){Fail 'REPOSITORY' 'Git remote origin is missing.' 11}
@@ -32,9 +32,67 @@ try{
  $current='unknown';if(Test-Path VERSION){$current=(Get-Content VERSION -Raw).Trim()}
  $rc=Invoke-Native 'git.exe' @('fetch','origin',$branch);if($rc -ne 0){Fail 'REPOSITORY' "git fetch failed ($rc)." 13}
  $target=GitText @('show',('origin/{0}:VERSION' -f $branch));if(-not $target){$target='unknown'}
- Log 'Application: HandBrake Project Queue';Log "Current:     $current";Log "Target:      $target"
+ Write-Host '';Write-Host '=== VERSION ===' -ForegroundColor Cyan
+ Log 'Application: HandBrake Project Queue';Write-Host ('Current:     {0}' -f $current) -ForegroundColor Yellow;Add-Content -LiteralPath $log -Value ((Get-Date -Format 'yyyy-MM-dd HH:mm:ss')+' Current:     '+$current) -Encoding UTF8;Write-Host ('Target:      {0}' -f $target) -ForegroundColor Cyan;Add-Content -LiteralPath $log -Value ((Get-Date -Format 'yyyy-MM-dd HH:mm:ss')+' Target:      '+$target) -Encoding UTF8
+ Write-Host '[REPOSITORY]' -ForegroundColor Cyan
  $status=GitText @('status','--porcelain','--untracked-files=no')
- $dirty=@($status -split "[\r\n]+"|Where-Object{$_ -and $_ -notmatch 'upgrade\.cmd$' -and $_ -notmatch 'upgrade\.ps1$'})
+ $dirty=@($status -split "[\r\n]+"|Where-Object{$_ -and $_ -notmatch 'upgrade\.cmd
+ if($dirty.Count -gt 0){
+   $backupRoot=Join-Path $RepositoryPath 'logs\upgrade-backup'
+   New-Item -ItemType Directory -Force -Path $backupRoot|Out-Null
+   foreach($line in $dirty){
+     $rel=$line.Substring(3).Trim()
+     if($rel -match ' -> '){$rel=($rel -split ' -> ')[-1]}
+     $src=Join-Path $RepositoryPath $rel
+     if(Test-Path -LiteralPath $src -PathType Leaf){
+       $dst=Join-Path $backupRoot $rel
+       $parent=Split-Path -Parent $dst
+       if($parent){New-Item -ItemType Directory -Force -Path $parent|Out-Null}
+       Copy-Item -LiteralPath $src -Destination $dst -Force
+       Log "LOCAL BACKUP: $rel"
+     }
+   }
+   Log 'Tracked local changes were backed up to logs\upgrade-backup before synchronization.'
+ }
+ # The updater files are authoritative bootstrap state and are explicitly disposable.
+ $rc=Invoke-Native 'git.exe' @('restore','--source',"origin/$branch",'--staged','--worktree','--','upgrade.cmd','upgrade.ps1');if($rc -ne 0){Fail 'SELF-UPDATE' "Unable to synchronize updater files ($rc)." 15}
+ $rc=Invoke-Native 'git.exe' @('reset','--hard',"origin/$branch");if($rc -ne 0){Fail 'REPOSITORY' "git reset failed ($rc)." 16}
+ $head=GitText @('rev-parse','HEAD');$remote=GitText @('rev-parse',"origin/$branch")
+ if(-not $head -or $head -ne $remote){Fail 'VERIFY' 'HEAD does not match target branch.' 17}
+ $version=(Get-Content VERSION -Raw).Trim()
+ Write-Host '[VERIFY]' -ForegroundColor Cyan
+ Log "Starting commit:     $start";Log "Synchronized commit: $head";Log "Result version:      $version";Log 'STATUS: SUCCESS - phase=COMPLETE'
+ Write-Host '';Write-Host '========================================' -ForegroundColor Green;Write-Host 'UPGRADE SUCCESSFUL' -ForegroundColor Green;Write-Host "HandBrake Project Queue v$version" -ForegroundColor Green;Write-Host '========================================' -ForegroundColor Green
+ exit 0
+}catch{try{Log "ERROR: $($_.Exception.Message)";Log 'STATUS: FAILED - phase=UNKNOWN'}catch{};exit 99}finally{try{Pop-Location}catch{}}
+ -and $_ -notmatch 'upgrade\.ps1
+ if($dirty.Count -gt 0){
+   $backupRoot=Join-Path $RepositoryPath 'logs\upgrade-backup'
+   New-Item -ItemType Directory -Force -Path $backupRoot|Out-Null
+   foreach($line in $dirty){
+     $rel=$line.Substring(3).Trim()
+     if($rel -match ' -> '){$rel=($rel -split ' -> ')[-1]}
+     $src=Join-Path $RepositoryPath $rel
+     if(Test-Path -LiteralPath $src -PathType Leaf){
+       $dst=Join-Path $backupRoot $rel
+       $parent=Split-Path -Parent $dst
+       if($parent){New-Item -ItemType Directory -Force -Path $parent|Out-Null}
+       Copy-Item -LiteralPath $src -Destination $dst -Force
+       Log "LOCAL BACKUP: $rel"
+     }
+   }
+   Log 'Tracked local changes were backed up to logs\upgrade-backup before synchronization.'
+ }
+ $rc=Invoke-Native 'git.exe' @('checkout','-B',$branch,"origin/$branch");if($rc -ne 0){Fail 'REPOSITORY' "git checkout failed ($rc)." 15}
+ $rc=Invoke-Native 'git.exe' @('reset','--hard',"origin/$branch");if($rc -ne 0){Fail 'REPOSITORY' "git reset failed ($rc)." 16}
+ $head=GitText @('rev-parse','HEAD');$remote=GitText @('rev-parse',"origin/$branch")
+ if(-not $head -or $head -ne $remote){Fail 'VERIFY' 'HEAD does not match target branch.' 17}
+ $version=(Get-Content VERSION -Raw).Trim()
+ Log "Starting commit:     $start";Log "Synchronized commit: $head";Log "Result version:      $version";Log 'STATUS: SUCCESS - phase=COMPLETE'
+ Write-Host '';Write-Host '========================================' -ForegroundColor Green;Write-Host 'UPGRADE SUCCESSFUL' -ForegroundColor Green;Write-Host "HandBrake Project Queue v$version" -ForegroundColor Green;Write-Host '========================================' -ForegroundColor Green
+ exit 0
+}catch{try{Log "ERROR: $($_.Exception.Message)";Log 'STATUS: FAILED - phase=UNKNOWN'}catch{};exit 99}finally{try{Pop-Location}catch{}}
+})
  if($dirty.Count -gt 0){
    $backupRoot=Join-Path $RepositoryPath 'logs\upgrade-backup'
    New-Item -ItemType Directory -Force -Path $backupRoot|Out-Null
