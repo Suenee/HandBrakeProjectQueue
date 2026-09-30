@@ -26,7 +26,7 @@ function Get-ProjectInfo([string]$path){
 $root=Resolve-EditingRoot
 $all=@(Get-ChildItem -LiteralPath $root -Directory|ForEach-Object{Get-ProjectInfo $_.FullName}|Where-Object{$_}|Sort-Object Name -Descending)
 $pending=@($all|Where-Object{$_.PendingCount -gt 0});$lookup=@{};foreach($p in $all){$lookup[$p.Name]=$p}
-$form=New-Object Windows.Forms.Form;$form.Text="$($L.title) 0.02";$form.Size=New-Object Drawing.Size(780,390);$form.StartPosition='CenterScreen'
+$form=New-Object Windows.Forms.Form;$form.Text="$($L.title) 0.03";$form.Size=New-Object Drawing.Size(780,390);$form.StartPosition='CenterScreen'
 $menu=New-Object Windows.Forms.MenuStrip;$fileMenu=New-Object Windows.Forms.ToolStripMenuItem('Soubor');$settingsItem=New-Object Windows.Forms.ToolStripMenuItem('Nastavení...');$closeItem=New-Object Windows.Forms.ToolStripMenuItem('Zavřít');[void]$fileMenu.DropDownItems.Add($settingsItem);[void]$fileMenu.DropDownItems.Add($closeItem);[void]$menu.Items.Add($fileMenu);$form.MainMenuStrip=$menu;$form.Controls.Add($menu)
 $label=New-Object Windows.Forms.Label;$label.Text=$L.project;$label.Location=New-Object Drawing.Point(18,42);$label.AutoSize=$true;$form.Controls.Add($label)
 $combo=New-Object Windows.Forms.ComboBox;$combo.Location=New-Object Drawing.Point(18,66);$combo.Size=New-Object Drawing.Size(725,28);$combo.DropDownStyle='DropDown';$combo.AutoCompleteMode='None';$combo.AutoCompleteSource='None';$form.Controls.Add($combo)
