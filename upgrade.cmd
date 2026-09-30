@@ -45,7 +45,11 @@ if not exist ".git" (
 
 set "HBPQ_PS=%TEMP%\HBPQ_upgrade_%RANDOM%_%RANDOM%.ps1"
 git.exe show origin/main:upgrade.ps1 > "%HBPQ_PS%"
-if errorlevel 1 (del /q "%HBPQ_PS%" >nul 2>nul & popd & exit /b 11)
+if errorlevel 1 (
+  del /q "%HBPQ_PS%" >nul 2>nul
+  popd
+  exit /b 11
+)
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%HBPQ_PS%" -RepositoryPath "%HBPQ_REPO%"
 set "HBPQ_RC=%ERRORLEVEL%"
 del /q "%HBPQ_PS%" >nul 2>nul
