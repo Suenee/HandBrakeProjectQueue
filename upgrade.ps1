@@ -34,9 +34,24 @@ try{
  $target=GitText @('show',('origin/{0}:VERSION' -f $branch));if(-not $target){$target='unknown'}
  Log 'Application: HandBrake Project Queue';Log "Current:     $current";Log "Target:      $target"
  $status=GitText @('status','--porcelain','--untracked-files=no')
- $dirty=@($status -split "[
-]+"|Where-Object{$_ -and $_ -notmatch 'upgrade\.cmd$' -and $_ -notmatch 'upgrade\.ps1$'})
- if($dirty.Count -gt 0){$dirty|ForEach-Object{Log "LOCAL CHANGE: $_"};Fail 'REPOSITORY' 'Tracked local changes detected. Commit or revert them before upgrade.' 14}
+ $dirty=@($status -split "[\r\n]+"|Where-Object{$_ -and $_ -notmatch 'upgrade\.cmd$' -and $_ -notmatch 'upgrade\.ps1$'})
+ if($dirty.Count -gt 0){
+   $backupRoot=Join-Path $RepositoryPath 'logs\upgrade-backup'
+   New-Item -ItemType Directory -Force -Path $backupRoot|Out-Null
+   foreach($line in $dirty){
+     $rel=$line.Substring(3).Trim()
+     if($rel -match ' -> '){$rel=($rel -split ' -> ')[-1]}
+     $src=Join-Path $RepositoryPath $rel
+     if(Test-Path -LiteralPath $src -PathType Leaf){
+       $dst=Join-Path $backupRoot $rel
+       $parent=Split-Path -Parent $dst
+       if($parent){New-Item -ItemType Directory -Force -Path $parent|Out-Null}
+       Copy-Item -LiteralPath $src -Destination $dst -Force
+       Log "LOCAL BACKUP: $rel"
+     }
+   }
+   Log 'Tracked local changes were backed up to logs\upgrade-backup before synchronization.'
+ }
  $rc=Invoke-Native 'git.exe' @('checkout','-B',$branch,"origin/$branch");if($rc -ne 0){Fail 'REPOSITORY' "git checkout failed ($rc)." 15}
  $rc=Invoke-Native 'git.exe' @('reset','--hard',"origin/$branch");if($rc -ne 0){Fail 'REPOSITORY' "git reset failed ($rc)." 16}
  $head=GitText @('rev-parse','HEAD');$remote=GitText @('rev-parse',"origin/$branch")
