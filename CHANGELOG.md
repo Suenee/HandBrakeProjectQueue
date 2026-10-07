@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.06 - 07.10.2026
+
+- Reworked project scanning into a modal progress dialog with cancellation.
+- Increased the project selector drop-down so multiple choices are visibly available.
+- Replaced free-form language and logging fields with selectors.
+- Added standard .NET RESX localization for Czech and English and removed legacy JSON language files.
+- Added functional application logging modes: off, single, and all.
+- Made Settings more compact and added Reset, Save, and Cancel actions.
+- Added HandBrake source opening with executable auto-detection and explicit error reporting.
+- Removed legacy PowerShell/VBS application files; PowerShell remains only in the updater.
+
 ## 0.04 - 30.09.2026
 
 - Migrated the application UI from PowerShell to C# / .NET 10 WinForms.
