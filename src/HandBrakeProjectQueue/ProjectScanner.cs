@@ -1,6 +1,6 @@
 namespace HandBrakeProjectQueue;
 
-internal sealed class ProjectScanner(AppSettings settings)
+internal sealed class ProjectScanner(AppSettings settings, AppLog log)
 {
     public string ResolveEditingRoot()
     {
@@ -24,6 +24,7 @@ internal sealed class ProjectScanner(AppSettings settings)
     public async Task<List<ProjectItem>> ScanAsync(IProgress<(int done, int total, string name)> progress, CancellationToken token)
     {
         var root = ResolveEditingRoot();
+        log.Write("SCAN", $"Root: {root}");
         var dirs = Directory.GetDirectories(root);
         var result = new List<ProjectItem>();
         var extensions = settings.VideoExtensions.ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -47,6 +48,7 @@ internal sealed class ProjectScanner(AppSettings settings)
                 }).ToList(), token);
 
             result.Add(new ProjectItem(name, dir, files));
+            log.Write("SCAN", $"{name}: files={files.Count}");
         }
         progress.Report((dirs.Length, dirs.Length, ""));
         return result.OrderByDescending(x => x.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
