@@ -6,5 +6,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon Condition="Exists('..\\..\\assets\\HBPQ.ico')">..\\..\\assets\\HBPQ.ico</ApplicationIcon>
   </PropertyGroup>
 </Project>
