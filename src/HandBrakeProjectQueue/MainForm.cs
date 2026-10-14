@@ -12,7 +12,9 @@ internal sealed class MainForm : Form
     public MainForm()
     {
         settings=AppSettings.Load(); Strings.ApplyCulture(settings.Language); log=new AppLog(settings.Logging);
-        Text="HandBrake Project Queue 0.06";Width=820;Height=390;StartPosition=FormStartPosition.CenterScreen;
+        Text="HandBrake Project Queue 0.07";
+        try { Icon=Icon.ExtractAssociatedIcon(Application.ExecutablePath) ?? Icon; } catch { }
+        Width=820;Height=390;StartPosition=FormStartPosition.CenterScreen;
         var menu=new MenuStrip();var fileMenu=new ToolStripMenuItem(Strings.Get("FileMenu"));var si=new ToolStripMenuItem(Strings.Get("Settings"));var ei=new ToolStripMenuItem(Strings.Get("Close"));
         si.Click+=(_,_)=>ShowSettings();ei.Click+=(_,_)=>Close();fileMenu.DropDownItems.AddRange([si,ei]);menu.Items.Add(fileMenu);MainMenuStrip=menu;
         files.Columns.Add(new DataGridViewCheckBoxColumn{HeaderText="",Width=38,AutoSizeMode=DataGridViewAutoSizeColumnMode.None});
