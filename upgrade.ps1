@@ -52,13 +52,13 @@ try{
  $dotnet=Get-Command dotnet.exe -ErrorAction SilentlyContinue;if(-not $dotnet){Stop-Upgrade 'DEPENDENCIES' '.NET 10 SDK is required. Install the current stable .NET 10 SDK and run upgrade.cmd again.' 20}
  $sdkList=& dotnet.exe --list-sdks;if(-not($sdkList|Where-Object{$_ -match '^10\.'})){Stop-Upgrade 'DEPENDENCIES' '.NET 10 SDK is required. Install the current stable .NET 10 SDK and run upgrade.cmd again.' 21};Write-Log '.NET 10 SDK: OK' 'Green'
  Write-Host '';Write-Host '[ICON]' -ForegroundColor Cyan
- $iconSource=Join-Path $RepositoryPath 'assets\\HBPQ.png';$iconOutput=Join-Path $RepositoryPath 'assets\\HBPQ.ico'
+ $iconSource=Join-Path $RepositoryPath 'assets\\HBPQ.png';$iconOutput=Join-Path $sourceRoot 'assets\\HBPQ.ico'
  if(Test-Path -LiteralPath $iconSource){
    $iconBuilder=Join-Path $sourceRoot 'scripts\\Build-Icon.ps1'
    & $iconBuilder -Source $iconSource -Destination $iconOutput
    if(-not(Test-Path -LiteralPath $iconOutput)){Stop-Upgrade 'ICON' 'Icon generation failed.' 25}
    Write-Log 'Local PNG icon converted to ICO for EXE.' 'Green'
- }elseif(Test-Path -LiteralPath $iconOutput){Write-Log 'Using existing local ICO icon.' 'Yellow'}else{Write-Log 'WARNING: assets/HBPQ.png not found; building without custom icon.' 'Yellow'}
+ }elseif(Test-Path -LiteralPath (Join-Path $RepositoryPath 'assets\\HBPQ.ico')){Copy-Item -LiteralPath (Join-Path $RepositoryPath 'assets\\HBPQ.ico') -Destination $iconOutput -Force;Write-Log 'Using existing local ICO icon.' 'Yellow'}else{Write-Log 'WARNING: assets/HBPQ.png not found; building without custom icon.' 'Yellow'}
  Write-Host '';Write-Host '[BUILD]' -ForegroundColor Cyan
  $project=Join-Path $sourceRoot 'src\HandBrakeProjectQueue\HandBrakeProjectQueue.csproj';$out=Join-Path $RepositoryPath 'bin';$stage=Join-Path $RepositoryPath '.upgrade-stage';$backup=Join-Path $RepositoryPath '.upgrade-previous';if(Test-Path $stage){Remove-Item -LiteralPath $stage -Recurse -Force};New-Item -ItemType Directory -Path $stage -Force|Out-Null
  $rc=Invoke-Native 'dotnet.exe' @('publish',$project,'-c','Release','-r','win-x64','--self-contained','false','-o',$stage);if($rc -ne 0){Stop-Upgrade 'BUILD' "dotnet publish failed ($rc)." 30}
