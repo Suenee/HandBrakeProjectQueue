@@ -1,6 +1,6 @@
 # HandBrake Project Queue
 
-Windows .NET 10 WinForms helper for finding project videos and opening selected sources in HandBrake. Current version: **0.09**.
+Windows .NET 10 WinForms helper for finding project videos and opening selected sources in HandBrake. Current version: **0.10**.
 
 ## Run
 
@@ -22,4 +22,4 @@ Settings are available from the File menu. Czech and English UI resources are bu
 
 ## Upgrade
 
-Run `upgrade.cmd` from the checkout (including mapped/network drives). If the local Git history has an interrupted rebase, unpushed commits or tracked changes, the updater builds from an isolated snapshot of origin/main without modifying the local Git state. It builds in staging, preserves existing configuration during deployment, and writes `logs/upgrade.log`.
+Run `upgrade.cmd` from the checkout (including mapped/network drives). GitHub main is authoritative. The updater backs up recoverable local Git history and tracked changes to logs/git-recovery-* when necessary, exits an interrupted rebase, and synchronizes the checkout to origin/main. It does not push local commits. It builds in staging, preserves existing configuration during deployment, and writes `logs/upgrade.log`.
