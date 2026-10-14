@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.10 - 14.10.2026
+
+- Make GitHub main the authoritative source for tracked installation files.
+- Automatically back up local Git history and working changes before resetting a divergent checkout.
+- Exit interrupted rebases after backing up recoverable Git history.
+- Reset and verify local main against origin/main, without manual stash/rebase/push steps.
+- Preserve runtime data and application build staging.
+
 ## 0.09 - 14.10.2026
 
 - Detect interrupted rebase, unpushed commits and tracked edits without modifying local Git state.
