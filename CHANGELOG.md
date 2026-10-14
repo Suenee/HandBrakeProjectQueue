@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.08 - 14.10.2026
+
+- Block repository synchronization when local commits have not been pushed.
+- Reject unexpected tracked local edits instead of silently overwriting them.
+- Publish to a staging directory and retain the previous installation until verification.
+- Back up the previous deployed files and attempt restoration on deployment failure.
+- Keep user configuration files in the installation directory rather than deleting the entire directory before each build.
+
 ## 0.07 - 14.10.2026
 
 - Added PNG-to-multi-size Windows ICO generation during upgrade from local assets/HBPQ.png.
