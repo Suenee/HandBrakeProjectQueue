@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.07 - 14.10.2026
+
+- Added PNG-to-multi-size Windows ICO generation during upgrade from local assets/HBPQ.png.
+- Embedded the generated icon into the .NET executable and displayed it in the application window and taskbar.
+- Preserved the locally supplied PNG during repository synchronization; generated ICO is ignored by Git.
+
 ## 0.06 - 07.10.2026
 
 - Reworked project scanning into a modal progress dialog with cancellation.
