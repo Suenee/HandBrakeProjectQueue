@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.09 - 14.10.2026
+
+- Detect interrupted rebase, unpushed commits and tracked edits without modifying local Git state.
+- Build the authoritative GitHub version from an isolated source archive when local checkout is not clean.
+- Preserve local changes and report a warning instead of blocking application updates.
+- Keep staging and previous-build directories outside Git tracking.
+
 ## 0.08 - 14.10.2026
 
 - Block repository synchronization when local commits have not been pushed.
