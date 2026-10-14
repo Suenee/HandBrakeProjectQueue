@@ -1,6 +1,6 @@
 param([Parameter(Mandatory=$true)][string]$RepositoryPath)
 $ErrorActionPreference = 'Stop'
-$updaterRevision = '0.04'
+$updaterRevision = '0.07'
 $branch = 'main'
 $expectedOrigin = 'https://github.com/Suenee/HandBrakeProjectQueue.git'
 $RepositoryPath = $RepositoryPath.TrimEnd('\')
@@ -30,6 +30,14 @@ try{
  Write-Host '';Write-Host '[DEPENDENCIES]' -ForegroundColor Cyan
  $dotnet=Get-Command dotnet.exe -ErrorAction SilentlyContinue;if(-not $dotnet){Stop-Upgrade 'DEPENDENCIES' '.NET 10 SDK is required. Install the current stable .NET 10 SDK and run upgrade.cmd again.' 20}
  $sdkList=& dotnet.exe --list-sdks;if(-not($sdkList|Where-Object{$_ -match '^10\.'})){Stop-Upgrade 'DEPENDENCIES' '.NET 10 SDK is required. Install the current stable .NET 10 SDK and run upgrade.cmd again.' 21};Write-Log '.NET 10 SDK: OK' 'Green'
+ Write-Host '';Write-Host '[ICON]' -ForegroundColor Cyan
+ $iconSource=Join-Path $RepositoryPath 'assets\\HBPQ.png';$iconOutput=Join-Path $RepositoryPath 'assets\\HBPQ.ico'
+ if(Test-Path -LiteralPath $iconSource){
+   $iconBuilder=Join-Path $RepositoryPath 'scripts\\Build-Icon.ps1'
+   & $iconBuilder -Source $iconSource -Destination $iconOutput
+   if(-not(Test-Path -LiteralPath $iconOutput)){Stop-Upgrade 'ICON' 'Icon generation failed.' 25}
+   Write-Log 'Local PNG icon converted to ICO for EXE.' 'Green'
+ }elseif(Test-Path -LiteralPath $iconOutput){Write-Log 'Using existing local ICO icon.' 'Yellow'}else{Write-Log 'WARNING: assets/HBPQ.png not found; building without custom icon.' 'Yellow'}
  Write-Host '';Write-Host '[BUILD]' -ForegroundColor Cyan
  $project=Join-Path $RepositoryPath 'src\HandBrakeProjectQueue\HandBrakeProjectQueue.csproj';$out=Join-Path $RepositoryPath 'bin';if(Test-Path $out){Remove-Item -LiteralPath $out -Recurse -Force}
  $rc=Invoke-Native 'dotnet.exe' @('publish',$project,'-c','Release','-r','win-x64','--self-contained','false','-o',$out);if($rc -ne 0){Stop-Upgrade 'BUILD' "dotnet publish failed ($rc)." 30}
