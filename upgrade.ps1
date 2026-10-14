@@ -14,7 +14,7 @@ function Get-GitText([string[]]$ArgumentList){ $old=$ErrorActionPreference;$Erro
 function Stop-Upgrade([string]$Phase,[string]$Message,[int]$Code=1){Write-Log "ERROR [$Phase] $Message" 'Red';Write-Log "STATUS: FAILED - phase=$Phase" 'Red';exit $Code}
 try{
  Push-Location $RepositoryPath
- $env:GIT_CONFIG_COUNT='1';$env:GIT_CONFIG_KEY_0='safe.directory';$env:GIT_CONFIG_VALUE_0=(git.exe rev-parse --show-toplevel 2>$null);if(-not $env:GIT_CONFIG_VALUE_0){$env:GIT_CONFIG_VALUE_0=$RepositoryPath}
+ $env:GIT_CONFIG_COUNT='1';$env:GIT_CONFIG_KEY_0='safe.directory';$env:GIT_CONFIG_VALUE_0='*'
  Write-Host '';Write-Host '[SELF-UPDATE]' -ForegroundColor Cyan;Write-Log "Repository:  $RepositoryPath";Write-Log "Branch:      $branch";Write-Log "Updater:     $updaterRevision"
  if(-not(Test-Path '.git')){Stop-Upgrade 'REPOSITORY' 'Bootstrap did not create a Git repository.' 10}
  $origin=Get-GitText @('remote','get-url','origin');if(-not $origin){Stop-Upgrade 'REPOSITORY' 'Git remote origin is missing.' 11};if($origin -ne $expectedOrigin){Stop-Upgrade 'REPOSITORY' "Unexpected origin: $origin" 12}
