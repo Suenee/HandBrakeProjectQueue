@@ -1,6 +1,6 @@
 # HandBrake Project Queue
 
-Windows .NET 10 WinForms helper for finding project videos and opening selected sources in HandBrake. Current version: **0.07**.
+Windows .NET 10 WinForms helper for finding project videos and opening selected sources in HandBrake. Current version: **0.08**.
 
 ## Run
 
@@ -22,4 +22,4 @@ Settings are available from the File menu. Czech and English UI resources are bu
 
 ## Upgrade
 
-Run `upgrade.cmd` from the checkout (including mapped/network drives). The updater synchronizes the repository, builds the app, and writes `logs/upgrade.log`.
+Run `upgrade.cmd` from the checkout (including mapped/network drives). The updater refuses to overwrite unpushed commits or unexpected tracked edits, builds in staging, preserves existing configuration during deployment, and writes `logs/upgrade.log`.
