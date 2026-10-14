@@ -1,6 +1,6 @@
 param([Parameter(Mandatory=$true)][string]$RepositoryPath)
 $ErrorActionPreference = 'Stop'
-$updaterRevision = '0.08'
+$updaterRevision = '0.10'
 $branch = 'main'
 $expectedOrigin = 'https://github.com/Suenee/HandBrakeProjectQueue.git'
 $RepositoryPath = $RepositoryPath.TrimEnd('\')
@@ -23,31 +23,38 @@ try{
  $target=Get-GitText @('show',("origin/{0}:VERSION" -f $branch));if(-not $target){$target='unknown'}
  Write-Host '';Write-Host '=== VERSION ===' -ForegroundColor Cyan;Write-Log 'Application: HandBrake Project Queue';Write-Log "Current:     $current" 'Yellow';Write-Log "Target:      $target" 'Cyan';Write-Log "Updater:     $updaterRevision";Write-Log "Branch:      $branch"
  Write-Host '';Write-Host '[REPOSITORY]' -ForegroundColor Cyan
- $recovery=$false
+ $sourceRoot=$RepositoryPath
+ $snapshot=$null
+ $head=Get-GitText @('rev-parse',"origin/$branch")
+ if(-not $head){Stop-Upgrade 'REPOSITORY' 'Remote branch not available.' 14}
+ $status=Get-GitText @('status','--porcelain','--untracked-files=no')
+ $dirty=@($status -split "[\r\n]+"|Where-Object{$_})
  $inProgress=@('rebase-merge','rebase-apply','MERGE_HEAD','CHERRY_PICK_HEAD')|Where-Object{Test-Path (Join-Path (Join-Path $RepositoryPath '.git') $_)}
  $ahead=Get-GitText @('rev-list','--count',("origin/{0}..HEAD" -f $branch))
- $status=Get-GitText @('status','--porcelain','--untracked-files=no')
- $dirty=@($status -split "[\r\n]+" | Where-Object {$_})
- if($inProgress -or $null -eq $ahead -or [int]$ahead -gt 0 -or $dirty.Count -gt 0){
-   $recovery=$true
-   Write-Log 'WARNING: Local Git history/edits or an interrupted rebase detected. Original checkout will remain untouched; building from a clean GitHub snapshot.' 'Yellow'
-   Write-Log ("Git state: in-progress={0}; ahead={1}; tracked-changes={2}" -f [bool]$inProgress,$ahead,$dirty.Count)
+ $needsBackup=([bool]$inProgress -or $dirty.Count -gt 0 -or ($null -ne $ahead -and [int]$ahead -gt 0))
+ if($needsBackup){
+   $backupDir=Join-Path $logDir ('git-recovery-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '-' + [guid]::NewGuid().ToString('N').Substring(0,6))
+   New-Item -ItemType Directory -Path $backupDir -Force|Out-Null
+   Write-Log "Preserving local Git state at $backupDir" 'Yellow'
+   $rc=Invoke-Native 'git.exe' @('bundle','create',(Join-Path $backupDir 'history.bundle'),'--all')
+   if($rc -ne 0){Stop-Upgrade 'REPOSITORY' 'Cannot back up local Git history.' 15}
+   $patch=Join-Path $backupDir 'working-tree.patch'
+   & git.exe diff --binary --no-ext-diff | Out-File -LiteralPath $patch -Encoding utf8
+   $staged=Join-Path $backupDir 'staged.patch'
+   & git.exe diff --cached --binary --no-ext-diff | Out-File -LiteralPath $staged -Encoding utf8
+   if(Test-Path -LiteralPath 'assets\HBPQ.png'){Copy-Item -LiteralPath 'assets\HBPQ.png' -Destination (Join-Path $backupDir 'HBPQ.png') -Force}
+   if($inProgress){
+     $rc=Invoke-Native 'git.exe' @('rebase','--quit')
+     if($rc -ne 0){Stop-Upgrade 'REPOSITORY' 'Cannot exit interrupted rebase; original state preserved.' 16}
+   }
  }
- $sourceRoot=$RepositoryPath
- $snapshot=Join-Path $env:TEMP ("HBPQ_source_{0}" -f [guid]::NewGuid().ToString('N'))
- if($recovery){
-   New-Item -ItemType Directory -Path $snapshot -Force|Out-Null
-   $zip=Join-Path $env:TEMP ("HBPQ_archive_{0}.zip" -f [guid]::NewGuid().ToString('N'))
-   $rc=Invoke-Native 'git.exe' @('archive','--format=zip',"-o=$zip","origin/$branch")
-   if($rc -ne 0){Stop-Upgrade 'REPOSITORY' 'Cannot create clean source snapshot.' 16}
-   Expand-Archive -LiteralPath $zip -DestinationPath $snapshot -Force
-   Remove-Item -LiteralPath $zip -Force
-   $sourceRoot=$snapshot
- }else{
-   $rc=Invoke-Native 'git.exe' @('reset','--hard',"origin/$branch")
-   if($rc -ne 0){Stop-Upgrade 'REPOSITORY' "git reset failed ($rc)." 16}
- }
- $head=Get-GitText @('rev-parse',"origin/$branch")
+ $rc=Invoke-Native 'git.exe' @('reset','--hard',"origin/$branch")
+ if($rc -ne 0){Stop-Upgrade 'REPOSITORY' 'Cannot synchronize tracked files with GitHub.' 17}
+ $rc=Invoke-Native 'git.exe' @('checkout','-B',$branch,"origin/$branch")
+ if($rc -ne 0){Stop-Upgrade 'REPOSITORY' 'Cannot switch to authoritative branch.' 18}
+ $localHead=Get-GitText @('rev-parse','HEAD')
+ if($localHead -ne $head){Stop-Upgrade 'REPOSITORY' 'Local HEAD differs from origin/main after synchronization.' 19}
+ Write-Log "Synchronized to GitHub commit: $head" 'Green'
  Write-Host '';Write-Host '[DEPENDENCIES]' -ForegroundColor Cyan
  $dotnet=Get-Command dotnet.exe -ErrorAction SilentlyContinue;if(-not $dotnet){Stop-Upgrade 'DEPENDENCIES' '.NET 10 SDK is required. Install the current stable .NET 10 SDK and run upgrade.cmd again.' 20}
  $sdkList=& dotnet.exe --list-sdks;if(-not($sdkList|Where-Object{$_ -match '^10\.'})){Stop-Upgrade 'DEPENDENCIES' '.NET 10 SDK is required. Install the current stable .NET 10 SDK and run upgrade.cmd again.' 21};Write-Log '.NET 10 SDK: OK' 'Green'
@@ -88,5 +95,5 @@ try{
  if(Test-Path $stage){Remove-Item -LiteralPath $stage -Recurse -Force}
 
  Write-Host '';Write-Host '[VERIFY]' -ForegroundColor Cyan;$version=(Get-Content (Join-Path $sourceRoot 'VERSION') -Raw).Trim();Write-Log "Starting commit:     $start";Write-Log "Synchronized commit: $head";Write-Log "Result version:      $version";Write-Log "Executable:          $exe" 'Green'
- Write-Host '';Write-Host '========================================' -ForegroundColor Green;Write-Host 'UPGRADE SUCCESSFUL' -ForegroundColor Green;Write-Host "HandBrake Project Queue v$version" -ForegroundColor Green;Write-Host '========================================' -ForegroundColor Green;if($recovery){Write-Log 'STATUS: WARNING - phase=COMPLETE (local Git state preserved; application built from origin/main)' 'Yellow'}else{Write-Log 'STATUS: SUCCESS - phase=COMPLETE' 'Green'};exit 0
+ Write-Host '';Write-Host '========================================' -ForegroundColor Green;Write-Host 'UPGRADE SUCCESSFUL' -ForegroundColor Green;Write-Host "HandBrake Project Queue v$version" -ForegroundColor Green;Write-Host '========================================' -ForegroundColor Green;if($needsBackup){Write-Log "Recovery backup: $backupDir" 'Yellow';Write-Log 'STATUS: WARNING - phase=COMPLETE' 'Yellow'}else{Write-Log 'STATUS: SUCCESS - phase=COMPLETE' 'Green'};exit 0
 }catch{try{Write-Log "ERROR: $($_.Exception.Message)" 'Red';Write-Log 'STATUS: FAILED - phase=UNKNOWN' 'Red'}catch{};exit 99}finally{try{if($snapshot -and (Test-Path $snapshot)){Remove-Item -LiteralPath $snapshot -Recurse -Force -ErrorAction SilentlyContinue}}catch{};try{Pop-Location}catch{}}
