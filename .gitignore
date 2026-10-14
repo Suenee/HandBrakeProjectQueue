@@ -6,3 +6,5 @@ obj/
 src/**/bin/
 src/**/obj/
 assets/HBPQ.ico
+.upgrade-stage/
+.upgrade-previous/
