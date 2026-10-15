@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11 - 15.10.2026
+
+- Derive executable assembly and product versions from VERSION during publish.
+- Remove the hard-coded 0.07 window title; show the built product version.
+- Expand the project selection drop-down to ten visible rows while keeping editable search.
+
 ## 0.10 - 14.10.2026
 
 - Make GitHub main the authoritative source for tracked installation files.
