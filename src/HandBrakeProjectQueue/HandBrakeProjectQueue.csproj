@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
+    <Version>$(HbpqVersion)</Version>
+    <AssemblyVersion>$(HbpqVersion).0</AssemblyVersion>
+    <FileVersion>$(HbpqVersion).0</FileVersion>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
