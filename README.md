@@ -1,6 +1,6 @@
 # HandBrake Project Queue
 
-Windows .NET 10 WinForms helper for finding project videos and opening selected sources in HandBrake. Current version: **0.10**.
+Windows .NET 10 WinForms helper for finding project videos and opening selected sources in HandBrake. Current version: **0.11**.
 
 ## Run
 
