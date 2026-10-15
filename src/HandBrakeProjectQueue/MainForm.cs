@@ -4,7 +4,7 @@ internal sealed class MainForm : Form
 {
     private readonly AppSettings settings;
     private readonly AppLog log;
-    private readonly ComboBox projects=new(){DropDownStyle=ComboBoxStyle.DropDown,Dock=DockStyle.Top,MaxDropDownItems=8};
+    private readonly ComboBox projects=new(){DropDownStyle=ComboBoxStyle.DropDown,Dock=DockStyle.Top,MaxDropDownItems=10};
     private readonly DataGridView files=new(){Dock=DockStyle.Fill,AllowUserToAddRows=false,AllowUserToDeleteRows=false,RowHeadersVisible=false,AutoSizeColumnsMode=DataGridViewAutoSizeColumnsMode.Fill};
     private readonly Button openHb=new(){AutoSize=true}, close=new(){AutoSize=true};
     private List<ProjectItem> all=[]; private bool filtering;
@@ -12,7 +12,7 @@ internal sealed class MainForm : Form
     public MainForm()
     {
         settings=AppSettings.Load(); Strings.ApplyCulture(settings.Language); log=new AppLog(settings.Logging);
-        Text="HandBrake Project Queue 0.07";
+        Text=$"HandBrake Project Queue {Application.ProductVersion}";
         try { Icon=Icon.ExtractAssociatedIcon(Application.ExecutablePath) ?? Icon; } catch { }
         Width=820;Height=390;StartPosition=FormStartPosition.CenterScreen;
         var menu=new MenuStrip();var fileMenu=new ToolStripMenuItem(Strings.Get("FileMenu"));var si=new ToolStripMenuItem(Strings.Get("Settings"));var ei=new ToolStripMenuItem(Strings.Get("Close"));
@@ -24,7 +24,7 @@ internal sealed class MainForm : Form
         openHb.Text=Strings.Get("OpenHandBrake");close.Text=Strings.Get("Close");
         var bottom=new FlowLayoutPanel{Dock=DockStyle.Bottom,Height=50,FlowDirection=FlowDirection.RightToLeft,Padding=new Padding(12,8,12,8)};bottom.Controls.Add(close);bottom.Controls.Add(openHb);
         Controls.Add(files);Controls.Add(bottom);Controls.Add(top);Controls.Add(menu);
-        projects.DropDownHeight=projects.ItemHeight*4+2;
+        projects.IntegralHeight=false;projects.DropDownHeight=projects.ItemHeight*10+4;
         projects.TextUpdate+=(_,_)=>FilterProjects();projects.SelectedIndexChanged+=(_,_)=>ShowProject(projects.Text);
         openHb.Click+=(_,_)=>OpenSelected();close.Click+=(_,_)=>Close();FormClosed+=(_,_)=>log.Dispose();
         Shown+=async(_,_)=>await StartScanAsync();
