@@ -53,6 +53,14 @@ if errorlevel 1 (
   popd
   exit /b 11
 )
+echo [VERIFY] Checking downloaded PowerShell updater syntax...
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "$errors=$null; [System.Management.Automation.Language.Parser]::ParseFile($env:HBPQ_PS,[ref]$null,[ref]$errors) > $null; if($errors.Count -gt 0){$errors | ForEach-Object {Write-Host $_.ToString()};exit 12}"
+if errorlevel 1 (
+  echo ERROR: Downloaded upgrade.ps1 contains syntax errors. No application files were changed.
+  del /q "%HBPQ_PS%" >nul 2>nul
+  popd
+  exit /b 12
+)
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%HBPQ_PS%" -RepositoryPath "%HBPQ_REPO%"
 set "HBPQ_RC=%ERRORLEVEL%"
 del /q "%HBPQ_PS%" >nul 2>nul
