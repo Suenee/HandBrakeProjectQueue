@@ -1,6 +1,6 @@
 param([Parameter(Mandatory=$true)][string]$RepositoryPath)
 $ErrorActionPreference = 'Stop'
-$updaterRevision = '0.11'
+$updaterRevision = '0.12'
 $branch = 'main'
 $expectedOrigin = 'https://github.com/Suenee/HandBrakeProjectQueue.git'
 $RepositoryPath = $RepositoryPath.TrimEnd('\')
@@ -69,36 +69,7 @@ try{
  Write-Host '';Write-Host '[BUILD]' -ForegroundColor Cyan
  $project=Join-Path $sourceRoot 'src\HandBrakeProjectQueue\HandBrakeProjectQueue.csproj';$out=Join-Path $RepositoryPath 'bin';$stage=Join-Path $RepositoryPath '.upgrade-stage';$backup=Join-Path $RepositoryPath '.upgrade-previous';if(Test-Path $stage){Remove-Item -LiteralPath $stage -Recurse -Force};New-Item -ItemType Directory -Path $stage -Force|Out-Null
  $buildVersion=(Get-Content (Join-Path $sourceRoot 'VERSION') -Raw).Trim()
- if($buildVersion -notmatch '^\d+\.\d{2}if($rc -ne 0){Stop-Upgrade 'BUILD' "dotnet publish failed ($rc)." 30}
- $stagedExe=Join-Path $stage 'HandBrakeProjectQueue.exe';if(-not(Test-Path -LiteralPath $stagedExe)){Stop-Upgrade 'VERIFY' 'Published executable is missing; existing installation preserved.' 31}
- Write-Host '';Write-Host '[DEPLOY]' -ForegroundColor Cyan
- if(Test-Path $backup){Remove-Item -LiteralPath $backup -Recurse -Force}
- if(Test-Path $out){Copy-Item -LiteralPath $out -Destination $backup -Recurse -Force}
- try{
-   if(-not(Test-Path $out)){New-Item -ItemType Directory -Path $out -Force|Out-Null}
-   Get-ChildItem -LiteralPath $stage -File -Recurse|ForEach-Object{
-     $relative=$_.FullName.Substring($stage.Length).TrimStart('\')
-     $dest=Join-Path $out $relative
-     $parent=Split-Path -Parent $dest
-     if(-not(Test-Path $parent)){New-Item -ItemType Directory -Path $parent -Force|Out-Null}
-     Copy-Item -LiteralPath $_.FullName -Destination $dest -Force
-   }
-   $exe=Join-Path $out 'HandBrakeProjectQueue.exe'
-   if(-not(Test-Path $exe)){throw 'Deployed executable missing'}
- }catch{
-   Write-Log "Deployment failed; restoring previous bin: $($_.Exception.Message)" 'Red'
-   if(Test-Path $backup){
-     if(Test-Path $out){Remove-Item -LiteralPath $out -Recurse -Force}
-     Copy-Item -LiteralPath $backup -Destination $out -Recurse -Force
-   }
-   Stop-Upgrade 'DEPLOY' 'Deployment failed; previous build restored where available.' 32
- }
- if(Test-Path $stage){Remove-Item -LiteralPath $stage -Recurse -Force}
-
- Write-Host '';Write-Host '[VERIFY]' -ForegroundColor Cyan;$version=(Get-Content (Join-Path $sourceRoot 'VERSION') -Raw).Trim();Write-Log "Starting commit:     $start";Write-Log "Synchronized commit: $head";Write-Log "Result version:      $version";Write-Log "Executable:          $exe" 'Green'
- Write-Host '';Write-Host '========================================' -ForegroundColor Green;Write-Host 'UPGRADE SUCCESSFUL' -ForegroundColor Green;Write-Host "HandBrake Project Queue v$version" -ForegroundColor Green;Write-Host '========================================' -ForegroundColor Green;if($needsBackup){Write-Log "Recovery backup: $backupDir" 'Yellow';Write-Log 'STATUS: WARNING - phase=COMPLETE' 'Yellow'}else{Write-Log 'STATUS: SUCCESS - phase=COMPLETE' 'Green'};exit 0
-}catch{try{Write-Log "ERROR: $($_.Exception.Message)" 'Red';Write-Log 'STATUS: FAILED - phase=UNKNOWN' 'Red'}catch{};exit 99}finally{try{if($snapshot -and (Test-Path $snapshot)){Remove-Item -LiteralPath $snapshot -Recurse -Force -ErrorAction SilentlyContinue}}catch{};try{Pop-Location}catch{}}
-){Stop-Upgrade 'BUILD' "Invalid VERSION: $buildVersion" 29}
+ if($buildVersion -notmatch '^\d+\.\d{2}$'){Stop-Upgrade 'BUILD' "Invalid VERSION: $buildVersion" 29}
  $rc=Invoke-Native 'dotnet.exe' @('publish',$project,'-c','Release','-r','win-x64','--self-contained','false',"-p:HbpqVersion=$buildVersion",'-o',$stage);if($rc -ne 0){Stop-Upgrade 'BUILD' "dotnet publish failed ($rc)." 30}
  $stagedExe=Join-Path $stage 'HandBrakeProjectQueue.exe';if(-not(Test-Path -LiteralPath $stagedExe)){Stop-Upgrade 'VERIFY' 'Published executable is missing; existing installation preserved.' 31}
  Write-Host '';Write-Host '[DEPLOY]' -ForegroundColor Cyan
