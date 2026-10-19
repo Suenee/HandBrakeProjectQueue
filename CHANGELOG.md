@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.12 - 19.10.2026
+
+- Repair a malformed VERSION validation expression and duplicated updater script tail that caused PowerShell parse errors in v0.11.
+- Add PowerShell AST parser validation to upgrade.cmd before executing the fetched updater.
+- Preserve the current installation when downloaded updater syntax validation fails.
+
 ## 0.11 - 15.10.2026
 
 - Derive executable assembly and product versions from VERSION during publish.
